@@ -1,42 +1,46 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Crear matriz 5x5 con valores interiores arbitrarios (-20 por ejemplo)
-Nx = Ny = 5
-T = np.full((Nx, Ny), -20.0)
+# Tamaño de la malla incluyendo bordes
+Nx, Ny = 6, 6  # puedes cambiar estos valores
 
-# Función de condiciones de contorno
+# Inicializar la matriz de temperaturas
+T = np.zeros((Nx, Ny))
+
+# Aplicar condiciones de contorno
 def apply_boundary_conditions(T):
-    T[:, 0] = 50                 # Dirichlet en y = 0
-    T[:, -1] = 10                # Dirichlet en y = 1
-    T[0, :] = T[1, :]            # Neumann en x = 0
-    T[-1, :] = T[-2, :]          # Neumann en x = 1
+    T[0, :] = 50                 # Dirichlet en y = 0 (parte inferior)
+    T[-1, :] = 10                # Dirichlet en y = 1 (parte superior)
+    T[:, 0] = T[:, 1]            # Neumann en x = 0 (lado izquierdo)
+    T[:, -1] = T[:, -2]          # Neumann en x = 1 (lado derecho)
     return T
 
-# Aplicar condiciones
 T = apply_boundary_conditions(T)
 
-# Crear la cuadrícula de coordenadas para el plot
-x = np.arange(Nx)
-y = np.arange(Ny)
-X, Y = np.meshgrid(y, x)  # ¡Ojo! y primero para que coincida con la orientación
+# Marcar los puntos interiores con NaN (no conocidos aún)
+for i in range(1, Nx - 1):
+    for j in range(1, Ny - 1):
+        T[i, j] = np.nan
 
-# Graficar con puntos
+# Graficar la malla
 fig, ax = plt.subplots()
-scatter = ax.scatter(X, Y, c=T, cmap='coolwarm', s=500, edgecolors='k')
+im = ax.imshow(np.nan_to_num(T, nan=0), cmap='coolwarm', origin='lower')  # origin='lower' para que y=0 esté abajo
 
-# Añadir valores numéricos sobre cada punto
+# Etiquetar cada celda
 for i in range(Nx):
     for j in range(Ny):
-        ax.text(j, i, f"{T[i,j]:.0f}", ha='center', va='center', color='black', fontsize=10)
+        if np.isnan(T[i, j]):
+            label = '?'
+        else:
+            label = str(int(T[i, j]))
+        ax.text(j, i, label, ha='center', va='center', color='black', fontsize=12)
 
-# Ajustar la visualización
+# Configurar ejes y estética
 ax.set_xticks(np.arange(Ny))
 ax.set_yticks(np.arange(Nx))
-ax.set_xlim(-0.5, Ny - 0.5)
-ax.set_ylim(Nx - 0.5, -0.5)
-ax.set_title("Temperatura en malla 5x5 con condiciones de contorno")
-plt.colorbar(scatter, label="Temperatura")
-plt.grid(True)
-plt.gca().set_aspect('equal', adjustable='box')
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+ax.set_title('Condiciones de Contorno: 50°C abajo, 10°C arriba')
+plt.grid(True, which='both', color='gray', linewidth=0.5)
+plt.colorbar(im, label='Temperatura')
 plt.show()

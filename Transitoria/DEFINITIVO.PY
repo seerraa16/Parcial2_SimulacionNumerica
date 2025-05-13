@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 
 # Parámetros físicos y numéricos
 alpha = 0.01
-Nx = Ny = 40
+Nx = Ny = 20
 L = 1.0
 dt = 0.01
 T_max = 10.0
