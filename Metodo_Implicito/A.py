@@ -1,69 +1,42 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Parámetros
-L = 1.0            # Longitud del dominio en x y y
-Nx = 50            # Número de puntos en x
-Ny = 50            # Número de puntos en y
-dx = L / (Nx - 1)  # Paso en x
-dy = L / (Ny - 1)  # Paso en y
-dt = 0.01          # Paso temporal
+# Crear matriz 5x5 con valores interiores arbitrarios (-20 por ejemplo)
+Nx = Ny = 5
+T = np.full((Nx, Ny), -20.0)
 
-# Condiciones de frontera
-T_bottom = 50      # Temperatura en y=0
-T_top = 10         # Temperatura en y=1
-T_left = 0         # Derivada de T en x=0 (condición de Neumann)
-T_right = 0        # Derivada de T en x=1 (condición de Neumann)
+# Función de condiciones de contorno
+def apply_boundary_conditions(T):
+    T[:, 0] = 50                 # Dirichlet en y = 0
+    T[:, -1] = 10                # Dirichlet en y = 1
+    T[0, :] = T[1, :]            # Neumann en x = 0
+    T[-1, :] = T[-2, :]          # Neumann en x = 1
+    return T
 
-# Condiciones iniciales
-T_initial = lambda x, y: -50 * x * y  # Condición inicial T(x, y, 0)
+# Aplicar condiciones
+T = apply_boundary_conditions(T)
 
-# Malla de puntos (espacio)
-x = np.linspace(0, L, Nx)
-y = np.linspace(0, L, Ny)
-T = np.zeros((Nx, Ny))  # Inicializamos la malla de temperaturas con ceros
+# Crear la cuadrícula de coordenadas para el plot
+x = np.arange(Nx)
+y = np.arange(Ny)
+X, Y = np.meshgrid(y, x)  # ¡Ojo! y primero para que coincida con la orientación
 
-# Aplicamos la condición inicial en la malla
+# Graficar con puntos
+fig, ax = plt.subplots()
+scatter = ax.scatter(X, Y, c=T, cmap='coolwarm', s=500, edgecolors='k')
+
+# Añadir valores numéricos sobre cada punto
 for i in range(Nx):
     for j in range(Ny):
-        T[i, j] = T_initial(x[i], y[j])
+        ax.text(j, i, f"{T[i,j]:.0f}", ha='center', va='center', color='black', fontsize=10)
 
-# Método de Gauss-Seidel para resolver el sistema de ecuaciones
-def gauss_seidel(T, dx, dy, dt, tol=1e-6, max_iter=10000):
-    error = np.inf
-    iter_count = 0
-    while error > tol and iter_count < max_iter:
-        T_old = T.copy()  # Guardamos el estado anterior para calcular el error
-        
-        # Iteramos sobre el dominio interior (sin las fronteras)
-        for i in range(1, Nx-1):
-            for j in range(1, Ny-1):
-                T[i, j] = (0.01 * (T[i+1, j] + T[i-1, j]) / dx**2 +
-                           0.01 * (T[i, j+1] + T[i, j-1]) / dy**2) / \
-                          (2 * 0.01 * (1/dx**2 + 1/dy**2))
-        
-        # Aplicamos las condiciones de frontera
-        T[0, :] = T_left  # x = 0 (derivada 0)
-        T[Nx-1, :] = T_right  # x = 1 (derivada 0)
-        T[:, 0] = T_bottom  # y = 0
-        T[:, Ny-1] = T_top  # y = 1
-        
-        # Calculamos el error (la diferencia con la iteración anterior)
-        error = np.max(np.abs(T - T_old))
-        iter_count += 1
-
-    return T, iter_count
-
-# Resolver el sistema
-T_solution, iterations = gauss_seidel(T, dx, dy, dt)
-
-# Mostrar el número de iteraciones
-print(f"Solución encontrada en {iterations} iteraciones.")
-
-# Graficar la solución
-plt.contourf(x, y, T_solution.T, 50, cmap='inferno')
-plt.colorbar(label="Temperatura (°C)")
-plt.title("Distribución de temperatura estacionaria")
-plt.xlabel("x")
-plt.ylabel("y")
+# Ajustar la visualización
+ax.set_xticks(np.arange(Ny))
+ax.set_yticks(np.arange(Nx))
+ax.set_xlim(-0.5, Ny - 0.5)
+ax.set_ylim(Nx - 0.5, -0.5)
+ax.set_title("Temperatura en malla 5x5 con condiciones de contorno")
+plt.colorbar(scatter, label="Temperatura")
+plt.grid(True)
+plt.gca().set_aspect('equal', adjustable='box')
 plt.show()

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Traidor Rebote</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    #logo {
+      position: absolute;
+      padding: 40px 80px;
+      background-color: red;
+      color: white;
+      font-family: 'Arial Black', sans-serif;
+      font-size: 60px;
+      text-align: center;
+      border-radius: 15px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="logo">TRAIDOR</div>
+
+  <script>
+    const logo = document.getElementById('logo');
+    let x = 100, y = 100;
+    let dx = 3, dy = 3;
+
+    function animate() {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const logoWidth = logo.offsetWidth;
+      const logoHeight = logo.offsetHeight;
+
+      x += dx;
+      y += dy;
+
+      if (x + logoWidth >= screenWidth || x <= 0) {
+        dx *= -1;
+      }
+      if (y + logoHeight >= screenHeight || y <= 0) {
+        dy *= -1;
+      }
+
+      logo.style.left = x + 'px';
+      logo.style.top = y + 'px';
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
